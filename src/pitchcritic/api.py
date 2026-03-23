@@ -42,7 +42,7 @@ class AnalysisResult(BaseModel):
 @app.post("/analyze", response_model=AnalysisResult)
 async def analyze_pitch(file: UploadFile = File(...)) -> AnalysisResult:
     """Accept a pitch deck PDF and return a 0-100 adversarial score."""
-    filename = file.filename or ""
+    filename = Path(file.filename or "").name  # strip path components for safety
     if not filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
 
