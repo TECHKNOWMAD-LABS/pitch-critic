@@ -1,14 +1,19 @@
 """FastAPI application exposing the PitchCritic analysis endpoint."""
 
+import logging
 import tempfile
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
-from .critic import critique_pitch
-from .extractor import extract_pdf
+from .critic import CritiqueError, critique_pitch
+from .extractor import ExtractionError, extract_pdf
 from .scorer import calculate_score
+
+logger = logging.getLogger(__name__)
+
+MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # 50 MB
 
 app = FastAPI(
     title="PitchCritic",
@@ -43,6 +48,14 @@ async def analyze_pitch(file: UploadFile = File(...)) -> AnalysisResult:
 
     content = await file.read()
 
+    if len(content) == 0:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+    if len(content) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File too large ({len(content) / 1024 / 1024:.1f} MB). Max is 50 MB.",
+        )
+
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
         tmp.write(content)
         tmp_path = Path(tmp.name)
@@ -51,6 +64,12 @@ async def analyze_pitch(file: UploadFile = File(...)) -> AnalysisResult:
         pitch_content = extract_pdf(tmp_path)
         critique = critique_pitch(pitch_content.text)
         score = calculate_score(critique)
+    except ExtractionError as exc:
+        logger.warning("PDF extraction failed: %s", exc)
+        raise HTTPException(status_code=422, detail=f"PDF extraction failed: {exc}")
+    except CritiqueError as exc:
+        logger.error("Critique generation failed: %s", exc)
+        raise HTTPException(status_code=502, detail=f"Analysis failed: {exc}")
     finally:
         tmp_path.unlink(missing_ok=True)
 

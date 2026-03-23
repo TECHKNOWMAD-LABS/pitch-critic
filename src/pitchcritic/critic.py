@@ -74,11 +74,18 @@ class PitchCritique:
     overall_verdict: str
 
 
+class CritiqueError(Exception):
+    """Raised when critique generation or parsing fails."""
+
+
 def critique_pitch(
     content: str,
     llm_caller: LLMCaller | None = None,
 ) -> PitchCritique:
     """Run adversarial 10-dimension critique against pitch deck content."""
+    if not content or not content.strip():
+        raise CritiqueError("Pitch content is empty — nothing to critique")
+
     if llm_caller is None:
         llm_caller = get_default_caller()
 
@@ -109,20 +116,36 @@ PITCH DECK CONTENT:
 ---\
 """
 
-    raw = llm_caller(_SYSTEM_PROMPT, user_prompt)
-    data = _parse_json_response(raw)
+    try:
+        raw = llm_caller(_SYSTEM_PROMPT, user_prompt)
+    except Exception as exc:
+        raise CritiqueError(f"LLM call failed: {exc}") from exc
 
-    dimensions = [
-        DimensionCritique(
-            dimension=d["dimension"],
-            score=int(d["score"]),
-            critique=d["critique"],
-            fatal_flaw=d.get("fatal_flaw"),
+    try:
+        data = _parse_json_response(raw)
+    except (json.JSONDecodeError, ValueError) as exc:
+        raise CritiqueError(f"Failed to parse LLM response as JSON: {exc}") from exc
+
+    if "dimensions" not in data or "overall_verdict" not in data:
+        raise CritiqueError("LLM response missing required fields: dimensions, overall_verdict")
+
+    dimensions = []
+    for d in data["dimensions"]:
+        score = int(d.get("score", 0))
+        score = max(0, min(10, score))  # clamp to valid range
+        dimensions.append(
+            DimensionCritique(
+                dimension=d.get("dimension", "unknown"),
+                score=score,
+                critique=d.get("critique", "No critique provided."),
+                fatal_flaw=d.get("fatal_flaw"),
+            )
         )
-        for d in data["dimensions"]
-    ]
 
-    return PitchCritique(dimensions=dimensions, overall_verdict=data["overall_verdict"])
+    return PitchCritique(
+        dimensions=dimensions,
+        overall_verdict=data.get("overall_verdict", "No verdict provided."),
+    )
 
 
 def _parse_json_response(raw: str) -> dict:
