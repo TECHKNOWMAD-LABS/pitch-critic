@@ -12,14 +12,14 @@ class TestMakeLlmCaller:
     def test_creates_caller_with_explicit_key(self, mock_anthropic_cls: MagicMock) -> None:
         caller = make_llm_caller(api_key="test-key-123")
         assert callable(caller)
-        mock_anthropic_cls.assert_called_once_with(api_key="test-key-123")
+        mock_anthropic_cls.assert_called_once_with(api_key="test-key-123", timeout=120.0)
 
     @patch("pitchcritic.llm.anthropic.Anthropic")
     def test_creates_caller_with_env_key(self, mock_anthropic_cls: MagicMock) -> None:
         with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "env-key-456"}):
             caller = make_llm_caller(api_key=None)
             assert callable(caller)
-            mock_anthropic_cls.assert_called_once_with(api_key="env-key-456")
+            mock_anthropic_cls.assert_called_once_with(api_key="env-key-456", timeout=120.0)
 
     @patch("pitchcritic.llm.anthropic.Anthropic")
     def test_caller_invokes_messages_create(self, mock_anthropic_cls: MagicMock) -> None:
