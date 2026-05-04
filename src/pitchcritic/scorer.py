@@ -19,11 +19,7 @@ def calculate_score(critique: PitchCritique) -> PitchScore:
     dimension_scores = {d.dimension: d.score for d in critique.dimensions}
     total = max(0, min(100, sum(dimension_scores.values())))
 
-    fatal_flaws = [
-        f"{d.dimension}: {d.fatal_flaw}"
-        for d in critique.dimensions
-        if d.fatal_flaw
-    ]
+    fatal_flaws = [f"{d.dimension}: {d.fatal_flaw}" for d in critique.dimensions if d.fatal_flaw]
 
     return PitchScore(
         total=total,

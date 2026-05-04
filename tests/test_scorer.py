@@ -1,6 +1,5 @@
 """Tests for the scoring module."""
 
-
 from pitchcritic.critic import DIMENSIONS, DimensionCritique, PitchCritique
 from pitchcritic.scorer import PitchScore, calculate_score
 

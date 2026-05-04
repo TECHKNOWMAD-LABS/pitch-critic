@@ -51,9 +51,7 @@ class TestAnalyzeCommand:
         assert result.exit_code == 1
 
     @patch("pitchcritic.app.critique_pitch", return_value=_mock_critique())
-    def test_successful_analysis(
-        self, mock_critique: MagicMock, sample_pdf_path: Path
-    ) -> None:
+    def test_successful_analysis(self, mock_critique: MagicMock, sample_pdf_path: Path) -> None:
         result = runner.invoke(cli, [str(sample_pdf_path)])
         assert result.exit_code == 0
         assert "50" in result.output or "Pitch Score" in result.output
@@ -75,9 +73,7 @@ class TestAnalyzeCommand:
         assert "90" in result.output
 
     @patch("pitchcritic.app.critique_pitch", return_value=_mock_critique(2))
-    def test_low_score_output(
-        self, mock_critique: MagicMock, sample_pdf_path: Path
-    ) -> None:
+    def test_low_score_output(self, mock_critique: MagicMock, sample_pdf_path: Path) -> None:
         result = runner.invoke(cli, [str(sample_pdf_path)])
         assert result.exit_code == 0
         assert "20" in result.output
@@ -86,25 +82,19 @@ class TestAnalyzeCommand:
         "pitchcritic.app.critique_pitch",
         return_value=_mock_critique(3, with_flaws=True),
     )
-    def test_fatal_flaws_displayed(
-        self, mock_critique: MagicMock, sample_pdf_path: Path
-    ) -> None:
+    def test_fatal_flaws_displayed(self, mock_critique: MagicMock, sample_pdf_path: Path) -> None:
         result = runner.invoke(cli, [str(sample_pdf_path)])
         assert result.exit_code == 0
         assert "Fatal Flaws" in result.output
 
     @patch("pitchcritic.app.critique_pitch", return_value=_mock_critique())
-    def test_shows_slide_count(
-        self, mock_critique: MagicMock, sample_pdf_path: Path
-    ) -> None:
+    def test_shows_slide_count(self, mock_critique: MagicMock, sample_pdf_path: Path) -> None:
         result = runner.invoke(cli, [str(sample_pdf_path)])
         assert result.exit_code == 0
         assert "10" in result.output
 
     @patch("pitchcritic.app.critique_pitch", return_value=_mock_critique())
-    def test_shows_overall_verdict(
-        self, mock_critique: MagicMock, sample_pdf_path: Path
-    ) -> None:
+    def test_shows_overall_verdict(self, mock_critique: MagicMock, sample_pdf_path: Path) -> None:
         result = runner.invoke(cli, [str(sample_pdf_path)])
         assert result.exit_code == 0
         assert "Overall Verdict" in result.output
