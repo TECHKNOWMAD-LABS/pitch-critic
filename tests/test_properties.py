@@ -12,8 +12,7 @@ from pitchcritic.critic import (
     _parse_json_response,
     critique_pitch,
 )
-from pitchcritic.scorer import PitchScore, calculate_score
-
+from pitchcritic.scorer import calculate_score
 
 # --- Strategies ---
 
@@ -37,9 +36,7 @@ def valid_llm_response(draw: st.DrawFn) -> str:
     has_flaw = draw(st.booleans())
     payload = {
         "dimensions": [
-            make_dimension_critique(
-                dim, score, "A flaw" if (has_flaw and i == 0) else None
-            )
+            make_dimension_critique(dim, score, "A flaw" if (has_flaw and i == 0) else None)
             for i, (dim, score) in enumerate(zip(DIMENSIONS, scores))
         ],
         "overall_verdict": draw(st.text(min_size=1, max_size=200)),
@@ -179,18 +176,14 @@ class TestCritiqueProperties:
         for d in result.dimensions:
             assert 0 <= d.score <= 10
 
-    @given(
-        content=st.text(min_size=1, max_size=5000, alphabet=st.characters(codec="utf-8"))
-    )
+    @given(content=st.text(min_size=1, max_size=5000, alphabet=st.characters(codec="utf-8")))
     @settings(max_examples=50)
     def test_no_crash_on_random_unicode_content(self, content: str) -> None:
         """Critique should handle any unicode content without crashing."""
         from unittest.mock import MagicMock
 
         payload = {
-            "dimensions": [
-                make_dimension_critique(dim, 5) for dim in DIMENSIONS
-            ],
+            "dimensions": [make_dimension_critique(dim, 5) for dim in DIMENSIONS],
             "overall_verdict": "Test.",
         }
         mock = MagicMock(return_value=json.dumps(payload))

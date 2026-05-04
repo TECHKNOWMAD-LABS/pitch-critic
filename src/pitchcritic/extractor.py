@@ -56,9 +56,7 @@ def extract_pdf(path: Path | str) -> PitchContent:
     try:
         with pdfplumber.open(path) as pdf:
             if len(pdf.pages) > MAX_PAGES:
-                raise ExtractionError(
-                    f"PDF has {len(pdf.pages)} pages (max {MAX_PAGES})"
-                )
+                raise ExtractionError(f"PDF has {len(pdf.pages)} pages (max {MAX_PAGES})")
             for page in pdf.pages:
                 text = page.extract_text() or ""
                 pages.append(text)

@@ -7,7 +7,7 @@ Useful for testing, CI, and understanding the data flow.
 
 import json
 
-from pitchcritic.critic import DIMENSIONS, critique_pitch
+from pitchcritic.critic import critique_pitch
 from pitchcritic.scorer import calculate_score
 
 

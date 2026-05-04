@@ -117,12 +117,13 @@ class TestAPIValidation:
             )
         assert response.status_code == 422
 
-    def test_critique_error_returns_502(
-        self, client: TestClient, sample_pdf_bytes: bytes
-    ) -> None:
-        with patch("pitchcritic.api.extract_pdf"), patch(
-            "pitchcritic.api.critique_pitch",
-            side_effect=CritiqueError("LLM down"),
+    def test_critique_error_returns_502(self, client: TestClient, sample_pdf_bytes: bytes) -> None:
+        with (
+            patch("pitchcritic.api.extract_pdf"),
+            patch(
+                "pitchcritic.api.critique_pitch",
+                side_effect=CritiqueError("LLM down"),
+            ),
         ):
             response = client.post(
                 "/analyze",
