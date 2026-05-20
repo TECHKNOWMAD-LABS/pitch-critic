@@ -43,9 +43,9 @@ def extract_pdf(path: Path | str) -> PitchContent:
     if file_size == 0:
         raise ExtractionError("PDF file is empty (0 bytes)")
     if file_size > MAX_PDF_SIZE_BYTES:
-        raise ExtractionError(
-            f"PDF too large: {file_size / 1024 / 1024:.1f} MB (max {MAX_PDF_SIZE_BYTES // 1024 // 1024} MB)"
-        )
+        size_mb = file_size / 1024 / 1024
+        max_mb = MAX_PDF_SIZE_BYTES // 1024 // 1024
+        raise ExtractionError(f"PDF too large: {size_mb:.1f} MB (max {max_mb} MB)")
 
     content_hash = _file_hash(path)
     if content_hash in _extraction_cache:
